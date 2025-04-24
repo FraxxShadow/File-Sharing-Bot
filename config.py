@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 
 load_dotenv()
 
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "7696888023:AAEI5zizXTD1xq7xAnwTYC7iET8wOnja4x")
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "7696888023:AAEI5zizXTD1xq7xAnwTYC7iET8wOnja4xI")
 
 APP_ID = int(os.environ.get("APP_ID", "17417255"))
 
