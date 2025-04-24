@@ -1,4 +1,4 @@
-#(©)Codexbotz
+# (©)Codexbotz
 
 import base64
 import re
@@ -10,64 +10,55 @@ from config import *
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 
-async def is_subscribed(filter, client, update):
-    if not FORCE_SUB_CHANNEL:
-        return True
+async def is_subscribed(_, client, update):
     user_id = update.from_user.id
+
     if user_id in ADMINS:
         return True
-    try:
-        member = await client.get_chat_member(chat_id = FORCE_SUB_CHANNEL, user_id = user_id)
-    except UserNotParticipant:
-        return False
 
-    async def is_subscribed(filter, client, update):
-    if not FORCE_SUB_CHANNEL2:
-        return True
-    user_id = update.from_user.id
-    if user_id in ADMINS:
-        return True
-    try:
-        member = await client.get_chat_member(chat_id = FORCE_SUB_CHANNEL2, user_id = user_id)
-    except UserNotParticipant:
-        return False
+    # Check first channel
+    if FORCE_SUB_CHANNEL:
+        try:
+            member = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
+            if member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
+                return False
+        except UserNotParticipant:
+            return False
 
-    if not member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
-        return False
-    else:
-        return True
+    # Check second channel
+    if FORCE_SUB_CHANNEL2:
+        try:
+            member = await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
+            if member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
+                return False
+        except UserNotParticipant:
+            return False
+
+    return True
 
 async def encode(string):
     string_bytes = string.encode("ascii")
     base64_bytes = base64.urlsafe_b64encode(string_bytes)
-    base64_string = (base64_bytes.decode("ascii")).strip("=")
-    return base64_string
+    return base64_bytes.decode("ascii").strip("=")
 
 async def decode(base64_string):
-    base64_string = base64_string.strip("=") # links generated before this commit will be having = sign, hence striping them to handle padding errors.
+    base64_string = base64_string.strip("=")
     base64_bytes = (base64_string + "=" * (-len(base64_string) % 4)).encode("ascii")
-    string_bytes = base64.urlsafe_b64decode(base64_bytes) 
-    string = string_bytes.decode("ascii")
-    return string
+    string_bytes = base64.urlsafe_b64decode(base64_bytes)
+    return string_bytes.decode("ascii")
 
 async def get_messages(client, message_ids):
     messages = []
     total_messages = 0
-    while total_messages != len(message_ids):
+    while total_messages < len(message_ids):
         temb_ids = message_ids[total_messages:total_messages+200]
         try:
-            msgs = await client.get_messages(
-                chat_id=client.db_channel.id,
-                message_ids=temb_ids
-            )
+            msgs = await client.get_messages(chat_id=client.db_channel.id, message_ids=temb_ids)
         except FloodWait as e:
             await asyncio.sleep(e.x)
-            msgs = await client.get_messages(
-                chat_id=client.db_channel.id,
-                message_ids=temb_ids
-            )
-        except:
-            pass
+            msgs = await client.get_messages(chat_id=client.db_channel.id, message_ids=temb_ids)
+        except Exception:
+            msgs = []
         total_messages += len(temb_ids)
         messages.extend(msgs)
     return messages
@@ -76,25 +67,21 @@ async def get_message_id(client, message):
     if message.forward_from_chat:
         if message.forward_from_chat.id == client.db_channel.id:
             return message.forward_from_message_id
-        else:
-            return 0
+        return 0
     elif message.forward_sender_name:
         return 0
     elif message.text:
-        pattern = "https://t.me/(?:c/)?(.*)/(\d+)"
-        matches = re.match(pattern,message.text)
+        pattern = r"https://t.me/(?:c/)?([\w\d_]+)/(\d+)"
+        matches = re.match(pattern, message.text)
         if not matches:
             return 0
-        channel_id = matches.group(1)
-        msg_id = int(matches.group(2))
+        channel_id, msg_id = matches.group(1), int(matches.group(2))
         if channel_id.isdigit():
             if f"-100{channel_id}" == str(client.db_channel.id):
                 return msg_id
-        else:
-            if channel_id == client.db_channel.username:
-                return msg_id
-    else:
-        return 0
+        elif channel_id == client.db_channel.username:
+            return msg_id
+    return 0
 
 def get_readable_time(seconds: int) -> str:
     count = 0
@@ -108,9 +95,8 @@ def get_readable_time(seconds: int) -> str:
             break
         time_list.append(int(result))
         seconds = int(remainder)
-    hmm = len(time_list)
-    for x in range(hmm):
-        time_list[x] = str(time_list[x]) + time_suffix_list[x]
+    for i in range(len(time_list)):
+        time_list[i] = f"{time_list[i]}{time_suffix_list[i]}"
     if len(time_list) == 4:
         up_time += f"{time_list.pop()}, "
     time_list.reverse()
@@ -123,10 +109,10 @@ async def delete_file(messages, client, process):
         try:
             await client.delete_messages(chat_id=msg.chat.id, message_ids=[msg.id])
         except Exception as e:
-            await asyncio.sleep(e.x)
+            if isinstance(e, FloodWait):
+                await asyncio.sleep(e.x)
             print(f"The attempt to delete the media {msg.id} was unsuccessful: {e}")
-
     await process.edit_text(AUTO_DEL_SUCCESS_MSG)
 
-
+# Custom filter using is_subscribed
 subscribed = filters.create(is_subscribed)
