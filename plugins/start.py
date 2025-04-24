@@ -11,43 +11,57 @@ from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, START_PIC, FORCE_PIC, AUTO_DELETE_TIME, AUTO_DELETE_MSG, JOIN_REQUEST_ENABLE, FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL2
 from helper_func import subscribed, decode, get_messages, delete_file
 from database.database import add_user, del_user, full_userbase, present_user
+from pyrogram import filters
+from pyrogram.types import Message
+from pyrogram.errors import UserNotParticipant
+from pyrogram.enums import ChatMemberStatus
 
+# Replace the original subscribed function with this
+class Subscribed(filters.Filter):
+    async def __call__(self, client, message: Message):
+        return await check_subscription(client, message)
 
-async def subscribed(client: Client, message: Message):
+subscribed = Subscribed()
+
+async def check_subscription(client: Client, message: Message):
     if not FORCE_SUB_CHANNEL and not FORCE_SUB_CHANNEL2:
         return True
+    
     user_id = message.from_user.id
-    # Check for Channel 1
+    
+    # Check Channel 1
     if FORCE_SUB_CHANNEL:
         try:
             member = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
             if member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]:
-                raise UserNotParticipant
-        except UserNotParticipant:
-            if JOIN_REQUEST_ENABLE:
-                try:
-                    await client.get_chat_join_request(FORCE_SUB_CHANNEL, user_id)
-                except:
+                if JOIN_REQUEST_ENABLE:
+                    try:
+                        await client.get_chat_join_request(FORCE_SUB_CHANNEL, user_id)
+                    except:
+                        return False
+                else:
                     return False
-            else:
-                return False
-    # Check for Channel 2
+        except UserNotParticipant:
+            return False
+    
+    # Check Channel 2
     if FORCE_SUB_CHANNEL2:
         try:
             member = await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
             if member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]:
-                raise UserNotParticipant
-        except UserNotParticipant:
-            if JOIN_REQUEST_ENABLE:
-                try:
-                    await client.get_chat_join_request(FORCE_SUB_CHANNEL2, user_id)
-                except:
+                if JOIN_REQUEST_ENABLE:
+                    try:
+                        await client.get_chat_join_request(FORCE_SUB_CHANNEL2, user_id)
+                    except:
+                        return False
+                else:
                     return False
-            else:
-                return False
+        except UserNotParticipant:
+            return False
+    
     return True
 
-
+# Then modify your handler decorator
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
