@@ -1,15 +1,13 @@
-#(©)CodeXBotz
-
 import os
 import asyncio
 from pyrogram import Client, filters
-from pyrogram.enums import ParseMode
+from pyrogram.enums import ParseMode, ChatMemberStatus
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
+from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated, UserNotParticipant
 
 from bot import Bot
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, START_PIC,FORCE_PIC, AUTO_DELETE_TIME, AUTO_DELETE_MSG, JOIN_REQUEST_ENABLE,FORCE_SUB_CHANNEL,FORCE_SUB_CHANNEL2
-from helper_func import subscribed,decode, get_messages, delete_file
+from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, START_PIC, FORCE_PIC, AUTO_DELETE_TIME, AUTO_DELETE_MSG, JOIN_REQUEST_ENABLE, FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL2
+from helper_func import subscribed, decode, get_messages, delete_file
 from database.database import add_user, del_user, full_userbase, present_user
 
 
@@ -22,7 +20,7 @@ async def start_command(client: Client, message: Message):
         except:
             pass
     text = message.text
-    if len(text)>7:
+    if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -36,7 +34,7 @@ async def start_command(client: Client, message: Message):
             except:
                 return
             if start <= end:
-                ids = range(start,end+1)
+                ids = range(start, end + 1)
             else:
                 ids = []
                 i = start
@@ -54,16 +52,15 @@ async def start_command(client: Client, message: Message):
         try:
             messages = await get_messages(client, ids)
         except:
-            await message.reply_text("ꜱᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ..!")
+            await message.reply_text("Something went wrong..!")
             return
         await temp_msg.delete()
 
         track_msgs = []
 
         for msg in messages:
-
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -73,35 +70,46 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             if AUTO_DELETE_TIME and AUTO_DELETE_TIME > 0:
-
                 try:
-                    copied_msg_for_deletion = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                    if copied_msg_for_deletion:
-                        track_msgs.append(copied_msg_for_deletion)
-                    else:
-                        print("Failed to copy message, skipping.")
-
+                    copied_msg = await msg.copy(
+                        chat_id=message.from_user.id,
+                        caption=caption,
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=reply_markup,
+                        protect_content=PROTECT_CONTENT
+                    )
+                    track_msgs.append(copied_msg)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
-                    copied_msg_for_deletion = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                    if copied_msg_for_deletion:
-                        track_msgs.append(copied_msg_for_deletion)
-                    else:
-                        print("Failed to copy message after retry, skipping.")
-
+                    copied_msg = await msg.copy(
+                        chat_id=message.from_user.id,
+                        caption=caption,
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=reply_markup,
+                        protect_content=PROTECT_CONTENT
+                    )
+                    track_msgs.append(copied_msg)
                 except Exception as e:
                     print(f"Error copying message: {e}")
-                    pass
-
             else:
                 try:
-                    await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    await msg.copy(
+                        chat_id=message.from_user.id,
+                        caption=caption,
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=reply_markup,
+                        protect_content=PROTECT_CONTENT
+                    )
                     await asyncio.sleep(0.5)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
-                    await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                except:
-                    pass
+                    await msg.copy(
+                        chat_id=message.from_user.id,
+                        caption=caption,
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=reply_markup,
+                        protect_content=PROTECT_CONTENT
+                    )
 
         if track_msgs:
             delete_data = await client.send_message(
@@ -109,38 +117,31 @@ async def start_command(client: Client, message: Message):
                 text=AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME)
             )
             asyncio.create_task(delete_file(track_msgs, client, delete_data))
-        else:
-            print("No messages to track for deletion.")
-
         return
     else:
-        reply_markup = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data = "about"),
-                    InlineKeyboardButton("ᴄʟᴏꜱᴇ", callback_data = "close")
-                ]
-            ]
-        )
-        if START_PIC:  # Check if START_PIC has a value
+        reply_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("Aʙᴏᴜᴛ", callback_data="about"),
+             InlineKeyboardButton("Cʟᴏsᴇ", callback_data="close")]
+        ])
+        if START_PIC:
             await message.reply_photo(
                 photo=START_PIC,
                 caption=START_MSG.format(
                     first=message.from_user.first_name,
                     last=message.from_user.last_name,
-                    username=None if not message.from_user.username else '@' + message.from_user.username,
+                    username=f"@{message.from_user.username}" if message.from_user.username else None,
                     mention=message.from_user.mention,
                     id=message.from_user.id
                 ),
                 reply_markup=reply_markup,
                 quote=True
             )
-        else:  # If START_PIC is empty, send only the text
+        else:
             await message.reply_text(
                 text=START_MSG.format(
                     first=message.from_user.first_name,
                     last=message.from_user.last_name,
-                    username=None if not message.from_user.username else '@' + message.from_user.username,
+                    username=f"@{message.from_user.username}" if message.from_user.username else None,
                     mention=message.from_user.mention,
                     id=message.from_user.id
                 ),
@@ -148,58 +149,50 @@ async def start_command(client: Client, message: Message):
                 disable_web_page_preview=True,
                 quote=True
             )
-        return
-
-    
-#=====================================================================================##
-
-WAIT_MSG = """"<b>ᴘʀᴏᴄᴇꜱꜱɪɴɢ...</b>"""
-
-REPLY_ERROR = """<code>ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴀꜱ ᴀ ʀᴇᴘʟᴀʏ ᴛᴏ ᴀɴʏ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴇꜱꜱᴀɢᴇ ᴡɪᴛʜ ᴏᴜᴛ ᴀɴʏ ꜱᴘᴀᴄᴇꜱ.</code>"""
-
-#=====================================================================================##
 
 
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
-
     buttons = []
-    
     if JOIN_REQUEST_ENABLE:
-        invite1 = await client.create_chat_invite_link(chat_id=FORCE_SUB_CHANNEL, creates_join_request=False)
-        invite2 = await client.create_chat_invite_link(chat_id=FORCE_SUB_CHANNEL2, creates_join_request=True)
-        ButtonUrl1 = invite1.invite_link
-        ButtonUrl2 = invite2.invite_link
+        invite_link_1 = await client.create_chat_invite_link(FORCE_SUB_CHANNEL, creates_join_request=True)
+        invite_link_2 = await client.create_chat_invite_link(FORCE_SUB_CHANNEL2, creates_join_request=True)
+        buttons.append([
+            InlineKeyboardButton("Jᴏɪɴ Cʜᴀɴɴᴇʟ 1", url=invite_link_1.invite_link),
+            InlineKeyboardButton("Jᴏɪɴ Cʜᴀɴɴᴇʟ 2", url=invite_link_2.invite_link)
+        ])
     else:
-        ButtonUrl1 = client.invitelink1
-        ButtonUrl2 = client.invitelink2
-
-    buttons.append([
-        InlineKeyboardButton("ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ 1", url=ButtonUrl1),
-        InlineKeyboardButton("ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ 2", url=ButtonUrl2),
-    ])
-
+        try:
+            invite_link_1 = await client.export_chat_invite_link(FORCE_SUB_CHANNEL)
+            invite_link_2 = await client.export_chat_invite_link(FORCE_SUB_CHANNEL2)
+        except:
+            invite_link_1 = None
+            invite_link_2 = None
+        if invite_link_1 and invite_link_2:
+            buttons.append([
+                InlineKeyboardButton("Jᴏɪɴ Cʜᴀɴɴᴇʟ 1", url=invite_link_1),
+                InlineKeyboardButton("Jᴏɪɴ Cʜᴀɴɴᴇʟ 2", url=invite_link_2)
+            ])
     try:
         buttons.append([
             InlineKeyboardButton(
-                text='ᴛʀʏ ᴀɢᴀɪɴ!',
+                text="Tʀʏ Aɢᴀɪɴ﹗",
                 url=f"https://t.me/{client.username}?start={message.command[1]}"
             )
         ])
     except IndexError:
         pass
-
     await message.reply_photo(
         photo=FORCE_PIC,
         caption=FORCE_MSG.format(
             first=message.from_user.first_name,
             last=message.from_user.last_name,
-            username=None if not message.from_user.username else '@' + message.from_user.username,
+            username=f"@{message.from_user.username}" if message.from_user.username else None,
             mention=message.from_user.mention,
             id=message.from_user.id
         ),
         reply_markup=InlineKeyboardMarkup(buttons),
-        quote=True,
+        quote=True
     )
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
