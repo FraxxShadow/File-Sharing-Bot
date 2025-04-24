@@ -70,6 +70,7 @@ class Bot(Client):
         self.LOGGER(__name__).info(f"Bot Running...")
         print("""Welcome to File Sharing Bot!!!""")
         self.username = usr_bot_me.username
+        
         app = web.AppRunner(await web_server())
         await app.setup()
         bind_address = "0.0.0.0"
