@@ -1,5 +1,3 @@
-# (©)Codexbotz
-
 import base64
 import re
 import asyncio
@@ -11,39 +9,50 @@ from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant, ChatAdminRequired
 
-async def subscribed(client: Client, message: Message):
-    if not FORCE_SUB_CHANNEL and not FORCE_SUB_CHANNEL2:
+async def is_subscribed(_, client, update):
+    user_id = update.from_user.id
+
+    if user_id in ADMINS:
         return True
-    user_id = message.from_user.id
-    # Check for Channel 1
+
+    # Check FORCE_SUB_CHANNEL
     if FORCE_SUB_CHANNEL:
         try:
-            member = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
-            if member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]:
-                raise UserNotParticipant
-        except UserNotParticipant:
-            if JOIN_REQUEST_ENABLE:
-                try:
-                    await client.get_chat_join_request(FORCE_SUB_CHANNEL, user_id)
-                except:
-                    return False
-            else:
+            member1 = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
+            if member1.status not in [
+                ChatMemberStatus.OWNER,
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.MEMBER
+            ]:
                 return False
+        except UserNotParticipant:
+            return False
+        except ChatAdminRequired:
+            logging.warning("Bot is not an admin in FORCE_SUB_CHANNEL.")
+            return False
+
+    # Check FORCE_SUB_CHANNEL2 (request-based channel)
     if FORCE_SUB_CHANNEL2:
         try:
-            member = await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
-            if member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]:
-                raise UserNotParticipant
-        except UserNotParticipant:
-            if JOIN_REQUEST_ENABLE:
-                try:
-                    await client.get_chat_join_request(FORCE_SUB_CHANNEL2, user_id)
-                except:
-                    return False
+            member2 = await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
+            if member2.status in [
+                ChatMemberStatus.OWNER,
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.MEMBER,
+                ChatMemberStatus.RESTRICTED  # Accepting restricted as pending user
+            ]:
+                return True
             else:
                 return False
+        except UserNotParticipant:
+            # User not in group and not yet approved, still allow if this is request-based
+            return True
+        except ChatAdminRequired:
+            logging.warning("Bot is not an admin in FORCE_SUB_CHANNEL2.")
+            return True
+
     return True
-    
+
 async def encode(string):
     string_bytes = string.encode("ascii")
     base64_bytes = base64.urlsafe_b64encode(string_bytes)
