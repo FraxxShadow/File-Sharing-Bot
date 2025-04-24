@@ -48,11 +48,11 @@ async def start_command(client: Client, message: Message):
                 ids = [int(int(argument[1]) / abs(client.db_channel.id))]
             except:
                 return
-        temp_msg = await message.reply("Please wait...")
+        temp_msg = await message.reply("Pʟᴇᴀsᴇ ᴡᴀɪᴛ...")
         try:
             messages = await get_messages(client, ids)
         except:
-            await message.reply_text("Something went wrong..!")
+            await message.reply_text("Sᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ..﹗")
             return
         await temp_msg.delete()
 
@@ -155,7 +155,7 @@ async def start_command(client: Client, message: Message):
 async def not_joined(client: Client, message: Message):
     buttons = []
     if JOIN_REQUEST_ENABLE:
-        invite_link_1 = await client.create_chat_invite_link(FORCE_SUB_CHANNEL, creates_join_request=True)
+        invite_link_1 = await client.export_chat_invite_link(FORCE_SUB_CHANNEL)
         invite_link_2 = await client.create_chat_invite_link(FORCE_SUB_CHANNEL2, creates_join_request=True)
         buttons.append([
             InlineKeyboardButton("Jᴏɪɴ Cʜᴀɴɴᴇʟ 1", url=invite_link_1.invite_link),
