@@ -9,6 +9,7 @@ from pyrogram.enums import ChatMemberStatus
 from config import *
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
+from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant, ChatAdminRequired
 
 async def is_subscribed(_, client, update):
     user_id = update.from_user.id
@@ -16,23 +17,41 @@ async def is_subscribed(_, client, update):
     if user_id in ADMINS:
         return True
 
-    # Check first channel
+    # Check FORCE_SUB_CHANNEL
     if FORCE_SUB_CHANNEL:
         try:
-            member = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
-            if member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
+            member1 = await client.get_chat_member(FORCE_SUB_CHANNEL, user_id)
+            if member1.status not in [
+                ChatMemberStatus.OWNER,
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.MEMBER
+            ]:
                 return False
         except UserNotParticipant:
+            return False
+        except ChatAdminRequired:
+            logging.warning("Bot is not an admin in FORCE_SUB_CHANNEL.")
             return False
 
-    # Check second channel
+    # Check FORCE_SUB_CHANNEL2 (request-based channel)
     if FORCE_SUB_CHANNEL2:
         try:
-            member = await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
-            if member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]:
+            member2 = await client.get_chat_member(FORCE_SUB_CHANNEL2, user_id)
+            if member2.status in [
+                ChatMemberStatus.OWNER,
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.MEMBER,
+                ChatMemberStatus.RESTRICTED  # Accepting restricted as pending user
+            ]:
+                return True
+            else:
                 return False
         except UserNotParticipant:
-            return False
+            # User not in group and not yet approved, still allow if this is request-based
+            return True
+        except ChatAdminRequired:
+            logging.warning("Bot is not an admin in FORCE_SUB_CHANNEL2.")
+            return True
 
     return True
 
