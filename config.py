@@ -28,8 +28,16 @@ TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
 #start message
 START_PIC = os.environ.get("START_PIC","https://wallpapersok.com/images/hd/one-piece-4k-nami-7ohlpm3jletqrctu.jpg")
-START_MSG = os.environ.get("START_MESSAGE", "<b>ʙᴀᴋᴀ!!! </b><b>{mention}</b>\n<b>ɪ ᴀᴍ [ɴᴀᴍɪ](t.me/TheNamiRobot) ᴀ ꜰɪʟᴇ ꜱᴛᴏʀᴇ ʙᴏᴛ ᴄʀᴇᴀᴛᴇᴅ ʙʏ [𝘈𝘯𝘪𝘮𝘦𝘔𝘰𝘯𝘵𝘩](t.me/AnimeMonth) ᴛᴏ ꜱʜᴀʀᴇ ᴀɴɪᴍᴇ ᴛᴏ ᴀ ʟᴀʀɢᴇ ɴᴜᴍʙᴇʀ ᴏꜰ ꜰᴀɴꜱ ᴠɪᴀ ꜱᴘᴇᴄɪᴀʟ ʟɪɴᴋꜱ...\n\n🇵​🇴​🇼​🇪​🇷​🇪​🇩​ 🇧​🇾​ [RNK Anime](t.me/RNK_Anime)</b>")
-try:
+START_MSG = os.environ.get(
+    "START_MESSAGE",
+    (
+        "<b>ʙᴀᴋᴀ!!! </b><b>{mention}</b>\n"
+        "<b>ɪ ᴀᴍ <a href='https://t.me/TheNamiRobot'>ɴᴀᴍɪ</a>, ᴀ ꜰɪʟᴇ ꜱᴛᴏʀᴇ ʙᴏᴛ ᴄʀᴇᴀᴛᴇᴅ ʙʏ "
+        "<a href='https://t.me/AnimeMonth'>𝘈𝘯𝘪𝘮𝘦𝘔𝘰𝘯𝘵𝘩</a> ᴛᴏ ꜱʜᴀʀᴇ ᴀɴɪᴍᴇ ᴛᴏ ᴀ ʟᴀʀɢᴇ ɴᴜᴍʙᴇʀ "
+        "ᴏꜰ ꜰᴀɴꜱ ᴠɪᴀ ꜱᴘᴇᴄɪᴀʟ ʟɪɴᴋꜱ...\n\n"
+        "🇵​🇴​🇼​🇪​🇷​🇪​🇩​ 🇧​🇾​ <a href='https://t.me/RNK_Anime'>RNK Anime</a></b>"
+    )
+)
     ADMINS=[]
     for x in (os.environ.get("ADMINS", "").split()):
         ADMINS.append(int(x))
