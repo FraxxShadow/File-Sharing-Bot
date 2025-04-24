@@ -66,24 +66,10 @@ class Bot(Client):
             self.LOGGER(__name__).warning(f"Make Sure bot is Admin in DB Channel, and Double check the CHANNEL_ID Value, Current Value {CHANNEL_ID}")
             sys.exit()
 
-    async def self_pinger(self):
-        while True:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f"https://{os.environ.get('KOYEB_APP_URL', 'https://major-helene-rnkanimeofc123-8af66777.koyeb.app/')}") as resp:
-                        if resp.status == 200:
-                            self.LOGGER(__name__).info("Self-ping successful.")
-                        else:
-                            self.LOGGER(__name__).warning(f"Self-ping failed: {resp.status}")
-            except Exception as e:
-                self.LOGGER(__name__).error(f"Self-ping error: {e}")
-            await asyncio.sleep(60)
-
         self.set_parse_mode(ParseMode.HTML)
         self.LOGGER(__name__).info(f"Bot Running...")
         print("""Welcome to File Sharing Bot!!!""")
         self.username = usr_bot_me.username
-        asyncio.create_task(self.self_pinger())
         app = web.AppRunner(await web_server())
         await app.setup()
         bind_address = "0.0.0.0"
