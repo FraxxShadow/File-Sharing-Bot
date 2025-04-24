@@ -28,7 +28,7 @@ TG_BOT_WORKERS = int(os.environ.get("TG_BOT_WORKERS", "4"))
 
 #start message
 START_PIC = os.environ.get("START_PIC","https://wallpapersok.com/images/hd/one-piece-4k-nami-7ohlpm3jletqrctu.jpg")
-START_MSG = os.environ.get("START_MESSAGE", "<b>ʙᴀᴋᴀ!!! {mention}\nɪ ᴀᴍ [ɴᴀᴍɪ](t.me/TheNamiRobot) ᴀ ꜰɪʟᴇ ꜱᴛᴏʀᴇ ʙᴏᴛ ᴄʀᴇᴀᴛᴇᴅ ʙʏ [𝘈𝘯𝘪𝘮𝘦𝘔𝘰𝘯𝘵𝘩](t.me/AnimeMonth) ᴛᴏ ꜱʜᴀʀᴇ ᴀɴɪᴍᴇ ᴛᴏ ᴀ ʟᴀʀɢᴇ ɴᴜᴍʙᴇʀ ᴏꜰ ꜰᴀɴꜱ ᴠɪᴀ ꜱᴘᴇᴄɪᴀʟ ʟɪɴᴋꜱ...\n\n🇵​🇴​🇼​🇪​🇷​🇪​🇩​ 🇧​🇾​ [RNK Anime](t.me/RNK_Anime)</b>")
+START_MSG = os.environ.get("START_MESSAGE", "<b>ʙᴀᴋᴀ!!! </b><b>{mention}</b>\n<b>ɪ ᴀᴍ [ɴᴀᴍɪ](t.me/TheNamiRobot) ᴀ ꜰɪʟᴇ ꜱᴛᴏʀᴇ ʙᴏᴛ ᴄʀᴇᴀᴛᴇᴅ ʙʏ [𝘈𝘯𝘪𝘮𝘦𝘔𝘰𝘯𝘵𝘩](t.me/AnimeMonth) ᴛᴏ ꜱʜᴀʀᴇ ᴀɴɪᴍᴇ ᴛᴏ ᴀ ʟᴀʀɢᴇ ɴᴜᴍʙᴇʀ ᴏꜰ ꜰᴀɴꜱ ᴠɪᴀ ꜱᴘᴇᴄɪᴀʟ ʟɪɴᴋꜱ...\n\n🇵​🇴​🇼​🇪​🇷​🇪​🇩​ 🇧​🇾​ [RNK Anime](t.me/RNK_Anime)</b>")
 try:
     ADMINS=[]
     for x in (os.environ.get("ADMINS", "").split()):
@@ -36,8 +36,9 @@ try:
 except ValueError:
         raise Exception("Your Admins list does not contain valid integers.")
 
-#Force sub message 
-FORCE_MSG = os.environ.get("FORCE_SUB_MESSAGE", "<b>ʜᴇʟʟᴏ ᴅᴇᴀʀ {mention}\n\n<b>ʏᴏᴜ ɴᴇᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴍʏ ᴄʜᴀɴɴᴇʟ ᴡʜɪᴄʜ ᴀʀᴇ ꜱʜᴏᴡɴ ʙᴇʟᴏᴡ ᴛᴏ ɢᴇᴛ ʏᴏᴜʀ ꜱᴡᴇᴇᴛ ꜱᴡᴇᴇᴛ ᴀɴɪᴍᴇ.</b>")
+#Force sub message
+FORCE_PIC = os.environ.get("FORCE_PIC","https://wallpapers.com/images/hd/nami-one-piece-3oxrzmms9vf06umc.jpg")
+FORCE_MSG = os.environ.get("FORCE_SUB_MESSAGE", "<b>ʜᴇʟʟᴏ ᴅᴇᴀʀ {mention}</b>\n\n<b>ʏᴏᴜ ɴᴇᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴍʏ ᴄʜᴀɴɴᴇʟ ᴡʜɪᴄʜ ᴀʀᴇ ꜱʜᴏᴡɴ ʙᴇʟᴏᴡ ᴛᴏ ɢᴇᴛ ʏᴏᴜʀ ꜱᴡᴇᴇᴛ ꜱᴡᴇᴇᴛ ᴀɴɪᴍᴇ.</b>")
 
 #set your Custom Caption here, Keep None for Disable Custom Caption
 CUSTOM_CAPTION = os.environ.get("CUSTOM_CAPTION", None)
