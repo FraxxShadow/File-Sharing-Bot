@@ -8,7 +8,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, START_PIC, AUTO_DELETE_TIME, AUTO_DELETE_MSG, JOIN_REQUEST_ENABLE,FORCE_SUB_CHANNEL
+from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT, START_PIC, AUTO_DELETE_TIME, AUTO_DELETE_MSG, JOIN_REQUEST_ENABLE,FORCE_SUB_CHANNEL,FORCE_SUB_CHANNEL2
 from helper_func import subscribed,decode, get_messages, delete_file
 from database.database import add_user, del_user, full_userbase, present_user
 
@@ -54,7 +54,7 @@ async def start_command(client: Client, message: Message):
         try:
             messages = await get_messages(client, ids)
         except:
-            await message.reply_text("Something went wrong..!")
+            await message.reply_text("ꜱᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ..!")
             return
         await temp_msg.delete()
 
@@ -108,7 +108,6 @@ async def start_command(client: Client, message: Message):
                 chat_id=message.from_user.id,
                 text=AUTO_DELETE_MSG.format(time=AUTO_DELETE_TIME)
             )
-            # Schedule the file deletion task after all messages have been copied
             asyncio.create_task(delete_file(track_msgs, client, delete_data))
         else:
             print("No messages to track for deletion.")
@@ -118,8 +117,8 @@ async def start_command(client: Client, message: Message):
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
-                    InlineKeyboardButton("🔒 Close", callback_data = "close")
+                    InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data = "about"),
+                    InlineKeyboardButton("ᴄʟᴏꜱᴇ", callback_data = "close")
                 ]
             ]
         )
@@ -154,9 +153,9 @@ async def start_command(client: Client, message: Message):
     
 #=====================================================================================##
 
-WAIT_MSG = """"<b>Processing ...</b>"""
+WAIT_MSG = """"<b>ᴘʀᴏᴄᴇꜱꜱɪɴɢ...</b>"""
 
-REPLY_ERROR = """<code>Use this command as a replay to any telegram message with out any spaces.</code>"""
+REPLY_ERROR = """<code>ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴀꜱ ᴀ ʀᴇᴘʟᴀʏ ᴛᴏ ᴀɴʏ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴇꜱꜱᴀɢᴇ ᴡɪᴛʜ ᴏᴜᴛ ᴀɴʏ ꜱᴘᴀᴄᴇꜱ.</code>"""
 
 #=====================================================================================##
 
@@ -164,46 +163,43 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
 
-    if bool(JOIN_REQUEST_ENABLE):
-        invite = await client.create_chat_invite_link(
-            chat_id=FORCE_SUB_CHANNEL,
-            creates_join_request=True
-        )
-        ButtonUrl = invite.invite_link
+    buttons = []
+    
+    if JOIN_REQUEST_ENABLE:
+        invite1 = await client.create_chat_invite_link(chat_id=FORCE_SUB_CHANNEL, creates_join_request=True)
+        invite2 = await client.create_chat_invite_link(chat_id=FORCE_SUB_CHANNEL2, creates_join_request=True)
+        ButtonUrl1 = invite1.invite_link
+        ButtonUrl2 = invite2.invite_link
     else:
-        ButtonUrl = client.invitelink
+        ButtonUrl1 = client.invitelink1
+        ButtonUrl2 = client.invitelink2
 
-    buttons = [
-        [
-            InlineKeyboardButton(
-                "Join Channel",
-                url = ButtonUrl)
-        ]
-    ]
+    buttons.append([
+        InlineKeyboardButton("ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ 1", url=ButtonUrl1),
+        InlineKeyboardButton("ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ 2", url=ButtonUrl2),
+    ])
 
     try:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text = 'Try Again',
-                    url = f"https://t.me/{client.username}?start={message.command[1]}"
-                )
-            ]
-        )
+        buttons.append([
+            InlineKeyboardButton(
+                text='ᴛʀʏ ᴀɢᴀɪɴ!',
+                url=f"https://t.me/{client.username}?start={message.command[1]}"
+            )
+        ])
     except IndexError:
         pass
 
     await message.reply(
-        text = FORCE_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
-            ),
-        reply_markup = InlineKeyboardMarkup(buttons),
-        quote = True,
-        disable_web_page_preview = True
+        text=FORCE_MSG.format(
+            first=message.from_user.first_name,
+            last=message.from_user.last_name,
+            username=None if not message.from_user.username else '@' + message.from_user.username,
+            mention=message.from_user.mention,
+            id=message.from_user.id
+        ),
+        reply_markup=InlineKeyboardMarkup(buttons),
+        quote=True,
+        disable_web_page_preview=True
     )
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
